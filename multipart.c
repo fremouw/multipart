@@ -21,6 +21,8 @@ static const char s_content_type_str[] = "Content-Type";
 static const size_t s_content_type_str_len = sizeof(s_content_type_str) - sizeof(char);
 static const char s_boundary_hyphen_str[] = "--";
 static const size_t s_boundary_hyphen_str_len = sizeof(s_boundary_hyphen_str) - sizeof(char);
+static const char s_form_data_str[] = "multipart/form-data";
+static const size_t s_form_data_str_len = sizeof(s_form_data_str) - sizeof(char);
 static const char s_boundary_str[] = "boundary=";
 static const char s_field_parameter_end_marker = '\"';
 static const char s_header_field_separator = ':';
@@ -33,6 +35,17 @@ static inline bool multipart_check_crlf(const char* pos);
 
 esp_err_t multipart_init(multipart_parse_context_t* context, const char* header) {
     char* b = NULL;
+
+    if(context == NULL || header == NULL) {
+        ESP_LOGE(TAG, "Invalid params.");
+        return ESP_FAIL;
+    }
+
+    // Check if content type is multipart/form-data.
+    if(strncmp(header, s_form_data_str, s_form_data_str_len) != 0) {
+        ESP_LOGE(TAG, "Invalid content type (%s).", header);
+        return ESP_FAIL;
+    }
 
     // Find the boundary in the header field.
     if ((b = strstr(header, s_boundary_str)) != NULL) {
